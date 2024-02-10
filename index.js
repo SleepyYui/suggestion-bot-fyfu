@@ -73,6 +73,24 @@ function validateDatabase() {
           );`, (err) => err ? logger.error(err) : resolve()));
 
       await new Promise((resolve) => connection.query(`
+          CREATE TABLE IF NOT EXISTS ${process.env.DATABASE_DATABASE}.custom_language
+          (
+              id        BIGINT AUTO_INCREMENT,
+              server_id BIGINT NOT NULL,
+              language  JSON   NULL,
+              CONSTRAINT custom_language_id PRIMARY KEY (id)
+          );`, (err) => err ? logger.error(err) : resolve()));
+
+      let lang_template = require('./bot/botconfig/languages/lang_template.json')
+
+      //console.log(lang_template)
+      await new Promise((resolve) => connection.query(`
+          INSERT INTO ${process.env.DATABASE_DATABASE}.custom_language (id, server_id, language)
+          VALUES (?, ?, ?)
+          ON DUPLICATE KEY UPDATE language = ?;
+      `, [1, 0, JSON.stringify(lang_template), JSON.stringify(lang_template)], (err) => err ? logger.error(err) : resolve()));
+
+      await new Promise((resolve) => connection.query(`
           CREATE TABLE IF NOT EXISTS ${process.env.DATABASE_DATABASE}.cache
           (
               id            INT AUTO_INCREMENT,
